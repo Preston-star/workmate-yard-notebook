@@ -8,11 +8,24 @@
         :root { --m-red: #D62828; --rubber: #121212; --plastic: #c02121; --gold: #FFD700; --active-green: #00ff00; --tape-yellow: #FFD200; }
         body { background-color: #080808; color: #fff; font-family: 'Segoe UI', sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; touch-action: manipulation; }
         
+        /* THE GHOST BAR - Floating at the absolute top */
+        #ghostBar {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; 
+            background: rgba(0, 255, 0, 0.15); backdrop-filter: blur(5px);
+            color: var(--active-green); padding: 12px 0; font-weight: 900; 
+            text-align: center; font-size: 0.8rem; letter-spacing: 3px;
+            border-bottom: 1px solid rgba(0,255,0,0.3); z-index: 2000;
+            cursor: pointer; animation: fadeIn 0.3s;
+        }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        /* MODAL */
         #safetyModal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 1000; justify-content: center; align-items: center; }
         .modal-box { background: var(--rubber); border: 2px solid var(--plastic); border-radius: 20px; padding: 30px; width: 85%; max-width: 320px; text-align: center; }
 
         .tool-body { width: 95%; max-width: 420px; background: var(--rubber); padding: 25px 15px; border-radius: 45px 5px 45px 45px; border: 3px solid #222; box-shadow: 0 50px 100px #000; position: relative; }
         .branding { text-align: center; color: #444; font-size: 0.85rem; font-weight: 900; letter-spacing: 3px; margin-bottom: 12px; text-transform: uppercase; }
+        
         .red-insert { background: var(--plastic); padding: 20px 15px; border-radius: 25px; border: 1px solid #8b1a1a; box-shadow: inset 0 5px 15px rgba(255,255,255,0.1); }
         .stamped { font-size: 0.65rem; color: #8b1a1a; text-transform: uppercase; font-weight: bold; margin: 10px 0 5px 5px; display: block; letter-spacing: 1px; }
         
@@ -30,10 +43,8 @@
         .metric-well.recall-active { border-color: var(--active-green) !important; }
         .metric-input { font-size: 3rem; color: #fff; width: 100%; }
         
-        /* 3-WAY BUTTON ROW */
-        .reset-split { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin: 15px 0; }
-        .reset-btn { padding: 12px; background: #2a2a2a; color: #999; border: 1px solid #3a3a3a; border-radius: 8px; font-weight: 900; text-transform: uppercase; cursor: pointer; font-size: 0.7rem; }
-        .hide-btn { background: #333 !important; color: var(--active-green) !important; }
+        .reset-split { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 15px 0; }
+        .reset-btn { padding: 12px; background: #2a2a2a; color: #999; border: 1px solid #3a3a3a; border-radius: 8px; font-weight: 900; text-transform: uppercase; cursor: pointer; font-size: 0.8rem; }
 
         .bank-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; margin-bottom: 20px; }
         .bank-btn { background: #111; border: 1px solid #333; color: #666; padding: 12px 0; border-radius: 6px; cursor: pointer; font-weight: bold; }
@@ -58,7 +69,9 @@
         .total-val { font-size: 1.6rem; font-weight: 900; color: #fff; font-family: monospace; }
     </style>
 </head>
-<body onclick="hideKeypadGlobal(event)">
+<body>
+
+<div id="ghostBar" onclick="dismissKeyboard()">SHOW SCREEN</div>
 
 <div id="safetyModal">
     <div class="modal-box">
@@ -86,9 +99,8 @@
         <div id="mWell" class="metric-well"><input type="number" id="cm" class="metric-input" placeholder="0.0" onfocus="handleFocus(this, 'met')" oninput="sync('met')"></div>
         
         <div class="reset-split">
-            <button class="reset-btn" onclick="openSafety()">SWIPE</button>
-            <button class="reset-btn hide-btn" onclick="document.activeElement.blur()">HIDE</button>
-            <button class="reset-btn" onclick="clearInputs()">CLEAR</button>
+            <button class="reset-btn" onclick="openSafety()">SWIPE NOTEBOOK</button>
+            <button class="reset-btn" onclick="clearInputs()">CLEAR ENTRY</button>
         </div>
 
         <div class="bank-grid">
@@ -125,10 +137,10 @@
         slotContainer.appendChild(row);
     }
 
-    function hideKeypadGlobal(e) {
-        if (e.target.tagName !== 'INPUT' && e.target.tagName !== 'BUTTON' && e.target.className !== 'add-btn') {
-            document.activeElement.blur();
-        }
+    // GHOST BAR LOGIC
+    function dismissKeyboard() {
+        document.activeElement.blur();
+        document.getElementById('ghostBar').style.display = 'none';
     }
 
     function toggleColor(isRecall) {
@@ -141,6 +153,7 @@
 
     function handleFocus(el, side) { 
         master = side; 
+        document.getElementById('ghostBar').style.display = 'block'; // Show Ghost Bar
         if (el.value !== "" || isRecallMode) {
             document.getElementById('ft').value = ""; document.getElementById('in').value = ""; document.getElementById('cm').value = "";
             dial.scrollTo({ top: 0, behavior: 'auto' }); toggleColor(false); 
@@ -200,6 +213,7 @@
         let frLabel = fracs[fIdx].l;
         banks[activeBank][selectedSlot-1] = { cm: c, ft: f, in: inVal, fIdx: fIdx, text: `${f}' ${inVal}" ${frLabel} | ${c}cm` };
         refreshUI(); toggleColor(false); 
+        document.getElementById('ghostBar').style.display = 'none';
         if(selectedSlot < 50) recallData(selectedSlot + 1);
     }
 
