@@ -8,7 +8,6 @@
         :root { --m-red: #D62828; --rubber: #121212; --plastic: #c02121; --gold: #FFD700; --active-green: #00ff00; --tape-yellow: #FFD200; }
         body { background-color: #080808; color: #fff; font-family: 'Segoe UI', sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; touch-action: manipulation; }
         
-        /* MODAL */
         #safetyModal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 1000; justify-content: center; align-items: center; }
         .modal-box { background: var(--rubber); border: 2px solid var(--plastic); border-radius: 20px; padding: 30px; width: 85%; max-width: 320px; text-align: center; }
 
@@ -19,12 +18,10 @@
         
         .well-row { display: grid; grid-template-columns: 1fr 1fr 1.3fr; gap: 8px; margin-bottom: 15px; }
         .well { background: #000; border-radius: 10px; border: 3px solid #1a1a1a; box-shadow: inset 0 8px 15px #000; padding: 10px 5px; height: 60px; display: flex; align-items: center; overflow: hidden; position: relative; }
-        
         input { width: 100%; background: none; border: none; color: #fff; font-size: 2.2rem; font-weight: bold; text-align: center; outline: none; z-index: 2; transition: color 0.2s; }
         input.recall-active { color: var(--active-green) !important; }
 
         .scroller { height: 60px; overflow-y: scroll; scroll-snap-type: y mandatory; scrollbar-width: none; width: 100%; background: var(--tape-yellow); box-shadow: inset 5px 0 10px rgba(0,0,0,0.3), inset -5px 0 10px rgba(0,0,0,0.3); border-radius: 5px; }
-        .scroller::-webkit-scrollbar { display: none; }
         .scroller-item { height: 60px; display: flex; align-items: center; justify-content: flex-end; padding-right: 15px; font-size: 1.4rem; scroll-snap-align: center; color: #000; font-weight: 900; position: relative; border-bottom: 1px solid rgba(0,0,0,0.1); }
         .scroller-item::before { content: ""; position: absolute; left: 0; width: 40%; height: 3px; background: #000; }
         .scroller-item::after { content: ""; position: absolute; left: 0; top: 15px; width: 20%; height: 2px; background: #000; box-shadow: 0 30px 0 #000; }
@@ -33,8 +30,11 @@
         .metric-well.recall-active { border-color: var(--active-green) !important; }
         .metric-input { font-size: 3rem; color: #fff; width: 100%; }
         
-        .reset-split { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 15px 0; }
-        .reset-btn { padding: 12px; background: #2a2a2a; color: #999; border: 1px solid #3a3a3a; border-radius: 8px; font-weight: 900; text-transform: uppercase; cursor: pointer; font-size: 0.8rem; }
+        /* 3-WAY BUTTON ROW */
+        .reset-split { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin: 15px 0; }
+        .reset-btn { padding: 12px; background: #2a2a2a; color: #999; border: 1px solid #3a3a3a; border-radius: 8px; font-weight: 900; text-transform: uppercase; cursor: pointer; font-size: 0.7rem; }
+        .hide-btn { background: #333 !important; color: var(--active-green) !important; }
+
         .bank-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; margin-bottom: 20px; }
         .bank-btn { background: #111; border: 1px solid #333; color: #666; padding: 12px 0; border-radius: 6px; cursor: pointer; font-weight: bold; }
         .bank-btn.active { background: #fff; color: #000; }
@@ -58,7 +58,7 @@
         .total-val { font-size: 1.6rem; font-weight: 900; color: #fff; font-family: monospace; }
     </style>
 </head>
-<body>
+<body onclick="hideKeypadGlobal(event)">
 
 <div id="safetyModal">
     <div class="modal-box">
@@ -86,8 +86,9 @@
         <div id="mWell" class="metric-well"><input type="number" id="cm" class="metric-input" placeholder="0.0" onfocus="handleFocus(this, 'met')" oninput="sync('met')"></div>
         
         <div class="reset-split">
-            <button class="reset-btn" onclick="openSafety()">Swipe Notebook</button>
-            <button class="reset-btn" onclick="clearInputs()">Clear Entry</button>
+            <button class="reset-btn" onclick="openSafety()">SWIPE</button>
+            <button class="reset-btn hide-btn" onclick="document.activeElement.blur()">HIDE</button>
+            <button class="reset-btn" onclick="clearInputs()">CLEAR</button>
         </div>
 
         <div class="bank-grid">
@@ -124,6 +125,12 @@
         slotContainer.appendChild(row);
     }
 
+    function hideKeypadGlobal(e) {
+        if (e.target.tagName !== 'INPUT' && e.target.tagName !== 'BUTTON' && e.target.className !== 'add-btn') {
+            document.activeElement.blur();
+        }
+    }
+
     function toggleColor(isRecall) {
         isRecallMode = isRecall;
         const els = [document.getElementById('ft'), document.getElementById('in'), document.getElementById('cm')];
@@ -134,13 +141,9 @@
 
     function handleFocus(el, side) { 
         master = side; 
-        // SMART CLEAR: Only wipe if the cell ALREADY has a number OR if we are in Recall Mode
         if (el.value !== "" || isRecallMode) {
-            document.getElementById('ft').value = ""; 
-            document.getElementById('in').value = ""; 
-            document.getElementById('cm').value = "";
-            dial.scrollTo({ top: 0, behavior: 'auto' }); 
-            toggleColor(false); 
+            document.getElementById('ft').value = ""; document.getElementById('in').value = ""; document.getElementById('cm').value = "";
+            dial.scrollTo({ top: 0, behavior: 'auto' }); toggleColor(false); 
         }
     }
 
@@ -196,8 +199,7 @@
         let fIdx = Math.round(dial.scrollTop / 60);
         let frLabel = fracs[fIdx].l;
         banks[activeBank][selectedSlot-1] = { cm: c, ft: f, in: inVal, fIdx: fIdx, text: `${f}' ${inVal}" ${frLabel} | ${c}cm` };
-        refreshUI();
-        toggleColor(false); 
+        refreshUI(); toggleColor(false); 
         if(selectedSlot < 50) recallData(selectedSlot + 1);
     }
 
