@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Workmate Yard Notebook</title>
+    <style>
+        :root { --m-red: #D62828; --rubber: #121212; --plastic: #c02121; --gold: #FFD700; }
+        
+        body { 
+            background-color: #080808; color: #fff; 
+            font-family: 'Segoe UI', Impact, sans-serif; 
+            display: flex; justify-content: center; align-items: center; 
+            min-height: 100vh; margin: 0; touch-action: manipulation; 
+        }
+
+        .tool-body { 
+            width: 95%; max-width: 420px; background: var(--rubber); 
+            padding: 25px 15px; border-radius: 45px 5px 45px 45px; 
+            border: 3px solid #222; box-shadow: 0 50px 100px #000; position: relative; 
+        }
+
+        .branding {
+            text-align: center; color: #444; font-size: 0.85rem; 
+            font-weight: 900; letter-spacing: 3px; margin-bottom: 12px;
+            text-transform: uppercase;
+        }
+
+        .red-insert { 
+            background: var(--plastic); padding: 20px 15px; border-radius: 25px; 
+            border: 1px solid #8b1a1a; box-shadow: inset 0 5px 15px rgba(255,255,255,0.1); 
+        }
+
+        .stamped { 
+            font-size: 0.65rem; color: #8b1a1a; text-transform: uppercase; 
+            font-weight: bold; margin: 10px 0 5px 5px; display: block; letter-spacing: 1px; 
+        }
+
+        /* WELLS */
+        .well-row { display: grid; grid-template-columns: 1fr 1fr 1.3fr; gap: 8px; margin-bottom: 15px; }
+        .well { background: #000; border-radius: 10px; border: 3px solid #1a1a1a; box-shadow: inset 0 8px 15px #000; padding: 10px 5px; height: 60px; display: flex; align-items: center; }
+        input { width: 100%; background: none; border: none; color: #fff; font-size: 2.2rem; font-weight: bold; text-align: center; outline: none; }
+
+        /* DIAL */
+        .scroller { height: 60px; overflow-y: scroll; scroll-snap-type: y mandatory; scrollbar-width: none; width: 100%; }
+        .scroller::-webkit-scrollbar { display: none; }
+        .scroller-item { height: 60px; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; scroll-snap-align: center; color: var(--m-red); font-weight: 800; }
+
+        /* LCD */
+        .metric-well { background: #000; border: 4px solid var(--m-red); border-radius: 12px; padding: 20px; box-shadow: inset 0 10px 25px #000; }
+        .metric-input { font-size: 3rem; color: #fff; width: 100%; }
+
+        .reset-split { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 15px 0; }
+        .reset-btn { padding: 12px; background: #2a2a2a; color: #999; border: 1px solid #3a3a3a; border-radius: 8px; font-weight: 900; text-transform: uppercase; cursor: pointer; font-size: 0.8rem; }
+
+        .bank-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; margin-bottom: 20px; }
+        .bank-btn { background: #111; border: 1px solid #333; color: #666; padding: 12px 0; border-radius: 6px; cursor: pointer; font-weight: bold; }
+        .bank-btn.active { background: #fff; color: #000; }
+
+        .split-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
+        .action-btn { padding: 18px; border: none; border-radius: 10px; font-size: 1.2rem; font-weight: 900; text-transform: uppercase; cursor: pointer; }
+        .save { background: #222; color: #fff; border: 1px solid #444; }
+        .delete { background: #8b1a1a; color: #fff; }
+
+        /* LIST */
+        .mem-list-container { height: 220px; overflow-y: scroll; background: rgba(0,0,0,0.3); border-radius: 10px; padding: 5px; border: 1px solid #333; }
+        .mem-row { background: #000; padding: 8px 12px; border-radius: 6px; border: 2px solid transparent; display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; cursor: pointer; }
+        .selected-row { border-color: #00ff00 !important; }
+        .added-row { border-color: var(--gold) !important; background: #1a1600; }
+        .add-btn { background: #333; color: #fff; border: 1px solid #444; border-radius: 4px; padding: 4px 10px; font-weight: bold; cursor: pointer; margin-right: 10px; }
+        .added-row .add-btn { background: var(--gold); color: #000; }
+
+        .total-bar { background: #000; border: 2px solid var(--gold); border-radius: 10px; margin-top: 15px; padding: 15px; text-align: center; }
+        .total-label { font-size: 0.7rem; color: var(--gold); text-transform: uppercase; margin-bottom: 5px; display: block; }
+        .total-val { font-size: 1.6rem; font-weight: 900; color: #fff; font-family: monospace; }
+    </style>
+</head>
+<body>
+
+<div class="tool-body">
+    <div class="branding">Workmate Yard Notebook</div>
+    <div class="red-insert">
+        <span class="stamped">Imperial Input</span>
+        <div class="well-row">
+            <div class="well"><input type="number" id="ft" onfocus="this.value=''; master='imp'" oninput="sync('imp')"></div>
+            <div class="well"><input type="number" id="in" onfocus="this.value=''; master='imp'" oninput="sync('imp')"></div>
+            <div class="well"><div class="scroller" id="dial" onmousedown="master='imp'" onscroll="sync('imp')"></div></div>
+        </div>
+
+        <span class="stamped">Metric Input</span>
+        <div class="metric-well">
+            <input type="number" id="cm" class="metric-input" onfocus="this.value=''; master='met'" oninput="sync('met')">
+        </div>
+
+        <div class="reset-split">
+            <button class="reset-btn" onclick="swipeAllFields()">Swipe Notebook</button>
+            <button class="reset-btn" onclick="clearInputs()">Clear Entry</button>
+        </div>
+        
+        <div class="bank-grid">
+            <button class="bank-btn active" id="bA" onclick="setBank('A')">A</button>
+            <button class="bank-btn" id="bB" onclick="setBank('B')">B</button>
+            <button class="bank-btn" id="bC" onclick="setBank('C')">C</button>
+            <button class="bank-btn" id="bD" onclick="setBank('D')">D</button>
+            <button class="bank-btn" id="bE" onclick="setBank('E')">E</button>
+        </div>
+
+        <div class="split-row">
+            <button class="action-btn save" onclick="saveData()">Save</button>
+            <button class="action-btn delete" onclick="deleteRow()">Delete Row</button>
+        </div>
+        
+        <div class="mem-list-container" id="scrollBox">
+            <div class="mem-list" id="slots"></div>
+        </div>
+
+        <div class="total-bar">
+            <span class="total-label">Project Tally Summary (+)</span>
+            <div id="grandTotal" class="total-val">0.0 cm | 0' 0"</div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const fracs = [{l:"0",v:0},{l:"1/16",v:0.0625},{l:"1/8",v:0.125},{l:"3/16",v:0.1875},{l:"1/4",v:0.25},{l:"5/16",v:0.3125},{l:"3/8",v:0.375},{l:"7/16",v:0.4375},{l:"1/2",v:0.5},{l:"9/16",v:0.5625},{l:"5/8",v:0.625},{l:"11/16",v:0.6875},{l:"3/4",v:0.75},{l:"13/16",v:0.8125},{l:"7/8",v:0.875},{l:"15/16",v:0.9375}];
+    const dial = document.getElementById('dial');
+    fracs.forEach(f => { let d = document.createElement('div'); d.className='scroller-item'; d.innerText=f.l; dial.appendChild(d); });
+
+    let master = ""; let activeBank = 'A'; let selectedSlot = 1;
+    let banks = { A:Array(50).fill(null), B:Array(50).fill(null), C:Array(50).fill(null), D:Array(50).fill(null), E:Array(50).fill(null) };
+    let addedIndices = { A:new Set(), B:new Set(), C:new Set(), D:new Set(), E:new Set() };
+
+    const slotContainer = document.getElementById('slots');
+    for(let i=1; i<=50; i++) {
+        let row = document.createElement('div');
+        row.className = 'mem-row'; row.id = 'r' + i;
+        row.innerHTML = `<div onclick="selectSlot(${i})"><span style="color:#444;font-size:0.7rem;margin-right:10px">${i}</span><span id="s${i}">---</span></div>
+                         <button class="add-btn" onclick="toggleAdd(${i})">+</button>`;
+        slotContainer.appendChild(row);
+    }
+
+    function sync(source) {
+        if (master !== source) return;
+        if (source === 'imp') {
+            let f = parseFloat(document.getElementById('ft').value) || 0;
+            let i = parseFloat(document.getElementById('in').value) || 0;
+            let fr = fracs[Math.round(dial.scrollTop / 60)].v;
+            document.getElementById('cm').value = ((f * 12 + i + fr) * 2.54).toFixed(1); 
+        } else {
+            let c = parseFloat(document.getElementById('cm').value) || 0;
+            let totIn = c / 2.54;
+            let f = Math.floor(totIn / 12), rem = totIn % 12, i = Math.floor(rem), frP = rem - i;
+            let cIdx = 0, min = 1;
+            fracs.forEach((fObj, x) => { if (Math.abs(fObj.v - frP) < min) { min = Math.abs(fObj.v - frP); cIdx = x; } });
+            document.getElementById('ft').value = f; document.getElementById('in').value = i;
+            dial.scrollTo({ top: cIdx * 60, behavior: 'auto' });
+        }
+    }
+
+    function selectSlot(n) {
+        selectedSlot = n;
+        for(let i=1; i<=50; i++) document.getElementById('r'+i).classList.remove('selected-row');
+        document.getElementById('r'+n).classList.add('selected-row');
+        document.getElementById('r'+n).scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    function toggleAdd(i) {
+        if (!banks[activeBank][i-1]) return;
+        if (addedIndices[activeBank].has(i)) addedIndices[activeBank].delete(i);
+        else addedIndices[activeBank].add(i);
+        refreshUI();
+    }
+
+    function saveData() {
+        let c = parseFloat(document.getElementById('cm').value) || 0;
+        if(c == 0) return;
+        let f = document.getElementById('ft').value || 0;
+        let i = document.getElementById('in').value || 0;
+        let fr = fracs[Math.round(dial.scrollTop / 60)].l;
+        banks[activeBank][selectedSlot-1] = { cm: c, text: `${f}' ${i}" ${fr} | ${c}cm` };
+        refreshUI();
+        if(selectedSlot < 50) selectSlot(selectedSlot + 1);
+    }
+
+    function deleteRow() { 
+        banks[activeBank][selectedSlot-1] = null; 
+        addedIndices[activeBank].delete(selectedSlot);
+        refreshUI(); 
+    }
+
+    function refreshUI() {
+        let runningCm = 0;
+        for(let i=1; i<=50; i++) {
+            let data = banks[activeBank][i-1];
+            document.getElementById('s'+i).innerText = data ? data.text : "---";
+            let row = document.getElementById('r'+i);
+            if (addedIndices[activeBank].has(i)) {
+                row.classList.add('added-row');
+                runningCm += data.cm;
+            } else {
+                row.classList.remove('added-row');
+            }
+        }
+        updateTotal(runningCm);
+    }
+
+    function updateTotal(cm) {
+        let totalIn = cm / 2.54;
+        let f = Math.floor(totalIn / 12), i = Math.floor(totalIn % 12);
+        let s = Math.round((totalIn - Math.floor(totalIn)) * 16);
+        let frac = s > 0 ? ` ${s}/16` : "";
+        document.getElementById('grandTotal').innerText = `${cm.toFixed(1)} cm | ${f}' ${i}${frac}"`;
+    }
+
+    function clearInputs() {
+        document.getElementById('ft').value = ""; document.getElementById('in').value = ""; document.getElementById('cm').value = "";
+        dial.scrollTo(0,0); master = "";
+    }
+
+    function swipeAllFields() {
+        if(confirm("Empty the entire Yard Notebook for Bank " + activeBank + "?")) {
+            banks[activeBank] = Array(50).fill(null);
+            addedIndices[activeBank].clear();
+            refreshUI();
+            selectSlot(1);
+        }
+    }
+
+    function setBank(b) {
+        activeBank = b;
+        document.querySelectorAll('.bank-btn').forEach(btn => btn.classList.remove('active'));
+        document.getElementById('b'+b).classList.add('active');
+        refreshUI();
+    }
+    selectSlot(1);
+</script>
+</body>
+</html>
