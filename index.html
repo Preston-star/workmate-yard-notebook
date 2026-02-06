@@ -5,54 +5,52 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Workmate Yard Notebook</title>
     <style>
-        :root { --m-red: #D62828; --rubber: #121212; --plastic: #c02121; --gold: #FFD700; --active-green: #00ff00; }
-        body { background-color: #080808; color: #fff; font-family: 'Segoe UI', Impact, sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; touch-action: manipulation; }
+        :root { --m-red: #D62828; --rubber: #121212; --plastic: #c02121; --gold: #FFD700; --active-green: #00ff00; --tape-yellow: #FFD200; }
+        body { background-color: #080808; color: #fff; font-family: 'Segoe UI', sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; touch-action: manipulation; }
+        
+        /* MODAL */
+        #safetyModal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 1000; justify-content: center; align-items: center; }
+        .modal-box { background: var(--rubber); border: 2px solid var(--plastic); border-radius: 20px; padding: 30px; width: 85%; max-width: 320px; text-align: center; }
+
         .tool-body { width: 95%; max-width: 420px; background: var(--rubber); padding: 25px 15px; border-radius: 45px 5px 45px 45px; border: 3px solid #222; box-shadow: 0 50px 100px #000; position: relative; }
         .branding { text-align: center; color: #444; font-size: 0.85rem; font-weight: 900; letter-spacing: 3px; margin-bottom: 12px; text-transform: uppercase; }
         .red-insert { background: var(--plastic); padding: 20px 15px; border-radius: 25px; border: 1px solid #8b1a1a; box-shadow: inset 0 5px 15px rgba(255,255,255,0.1); }
         .stamped { font-size: 0.65rem; color: #8b1a1a; text-transform: uppercase; font-weight: bold; margin: 10px 0 5px 5px; display: block; letter-spacing: 1px; }
         
         .well-row { display: grid; grid-template-columns: 1fr 1fr 1.3fr; gap: 8px; margin-bottom: 15px; }
-        .well { background: #000; border-radius: 10px; border: 3px solid #1a1a1a; box-shadow: inset 0 8px 15px #000; padding: 10px 5px; height: 60px; display: flex; align-items: center; }
-        input { width: 100%; background: none; border: none; color: #fff; font-size: 2.2rem; font-weight: bold; text-align: center; outline: none; }
+        .well { background: #000; border-radius: 10px; border: 3px solid #1a1a1a; box-shadow: inset 0 8px 15px #000; padding: 10px 5px; height: 60px; display: flex; align-items: center; overflow: hidden; position: relative; }
         
-        .scroller { height: 60px; overflow-y: scroll; scroll-snap-type: y mandatory; scrollbar-width: none; width: 100%; }
-        .scroller-item { height: 60px; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; scroll-snap-align: center; color: var(--m-red); font-weight: 800; }
-        
-        .metric-well { background: #000; border: 4px solid var(--m-red); border-radius: 12px; padding: 20px; box-shadow: inset 0 10px 25px #000; }
+        input { width: 100%; background: none; border: none; color: #fff; font-size: 2.2rem; font-weight: bold; text-align: center; outline: none; z-index: 2; transition: color 0.2s; }
+        input.recall-active { color: var(--active-green) !important; }
+
+        .scroller { height: 60px; overflow-y: scroll; scroll-snap-type: y mandatory; scrollbar-width: none; width: 100%; background: var(--tape-yellow); box-shadow: inset 5px 0 10px rgba(0,0,0,0.3), inset -5px 0 10px rgba(0,0,0,0.3); border-radius: 5px; }
+        .scroller::-webkit-scrollbar { display: none; }
+        .scroller-item { height: 60px; display: flex; align-items: center; justify-content: flex-end; padding-right: 15px; font-size: 1.4rem; scroll-snap-align: center; color: #000; font-weight: 900; position: relative; border-bottom: 1px solid rgba(0,0,0,0.1); }
+        .scroller-item::before { content: ""; position: absolute; left: 0; width: 40%; height: 3px; background: #000; }
+        .scroller-item::after { content: ""; position: absolute; left: 0; top: 15px; width: 20%; height: 2px; background: #000; box-shadow: 0 30px 0 #000; }
+
+        .metric-well { background: #000; border: 4px solid var(--m-red); border-radius: 12px; padding: 20px; box-shadow: inset 0 10px 25px #000; transition: border-color 0.3s; }
+        .metric-well.recall-active { border-color: var(--active-green) !important; }
         .metric-input { font-size: 3rem; color: #fff; width: 100%; }
         
         .reset-split { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 15px 0; }
         .reset-btn { padding: 12px; background: #2a2a2a; color: #999; border: 1px solid #3a3a3a; border-radius: 8px; font-weight: 900; text-transform: uppercase; cursor: pointer; font-size: 0.8rem; }
-        
         .bank-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; margin-bottom: 20px; }
         .bank-btn { background: #111; border: 1px solid #333; color: #666; padding: 12px 0; border-radius: 6px; cursor: pointer; font-weight: bold; }
         .bank-btn.active { background: #fff; color: #000; }
-        
         .split-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
         .action-btn { padding: 18px; border: none; border-radius: 10px; font-size: 1.2rem; font-weight: 900; text-transform: uppercase; cursor: pointer; }
         .save { background: #222; color: #fff; border: 1px solid #444; }
         .delete { background: #8b1a1a; color: #fff; }
 
-        /* LIST CONTAINER */
-        .mem-list-container { height: 220px; overflow-y: scroll; background: rgba(0,0,0,0.3); border-radius: 10px; padding: 5px; border: 1px solid #333; }
-        .mem-row { 
-            background: #000; padding: 8px 12px; border-radius: 6px; 
-            border: 2px solid #222; display: flex; justify-content: space-between; 
-            align-items: center; margin-bottom: 5px; cursor: pointer;
-            position: relative; transition: all 0.2s;
-        }
-
-        /* NEW ACTIVE INDICATOR */
-        .selected-row { 
-            border-left: 8px solid var(--active-green) !important; 
-            background: #0a1a0a;
-            box-shadow: inset 0 0 10px rgba(0, 255, 0, 0.1);
-        }
-        
-        /* ADDED STATE (GOLD) */
-        .added-row { border-color: var(--gold); background: #1a1600; }
-        .add-btn { background: #333; color: #fff; border: 1px solid #444; border-radius: 4px; padding: 4px 10px; font-weight: bold; cursor: pointer; margin-left: 10px; }
+        .mem-list-container { height: 260px; overflow-y: scroll; background: rgba(0,0,0,0.3); border-radius: 10px; padding: 5px; border: 1px solid #333; }
+        .mem-row { background: #000; padding: 12px; border-radius: 6px; border: 2px solid #222; display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; cursor: pointer; }
+        .selected-row { border-left: 8px solid var(--active-green) !important; background: #0a1a0a !important; }
+        .selected-row .val-text { font-size: 1.5rem; font-weight: bold; color: var(--active-green); }
+        .added-row { border-color: var(--gold); background: #1a1600 !important; }
+        .val-text { font-family: monospace; font-size: 1.1rem; color: #fff; } 
+        .empty-text { color: #444 !important; } 
+        .add-btn { background: #333; color: #fff; border: 1px solid #444; border-radius: 4px; padding: 6px 12px; font-weight: bold; cursor: pointer; }
         .added-row .add-btn { background: var(--gold); color: #000; }
 
         .total-bar { background: #000; border: 2px solid var(--gold); border-radius: 10px; margin-top: 15px; padding: 15px; text-align: center; }
@@ -61,21 +59,37 @@
     </style>
 </head>
 <body>
+
+<div id="safetyModal">
+    <div class="modal-box">
+        <div style="color:var(--plastic); font-weight:900; font-size:1.5rem; margin-bottom:15px; text-transform:uppercase;">Empty Notebook?</div>
+        <p style="color:#aaa; font-size:0.9rem;">Wipe all 50 entries in Bank <span id="targetBankLabel">A</span>.</p>
+        <div class="reset-split" style="margin-top:20px;">
+            <button class="reset-btn" style="background:#444; color:#fff;" onclick="closeSafety()">CANCEL</button>
+            <button class="reset-btn" style="background:var(--plastic); color:#fff;" onclick="confirmSwipe()">WIPE ALL</button>
+        </div>
+    </div>
+</div>
+
 <div class="tool-body">
     <div class="branding">Workmate Yard Notebook</div>
     <div class="red-insert">
         <span class="stamped">Imperial Input</span>
         <div class="well-row">
-            <div class="well"><input type="number" id="ft" onfocus="handleFocus(this, 'imp')" oninput="sync('imp')"></div>
-            <div class="well"><input type="number" id="in" onfocus="handleFocus(this, 'imp')" oninput="sync('imp')"></div>
-            <div class="well"><div class="scroller" id="dial" onmousedown="master='imp'" onscroll="sync('imp')"></div></div>
+            <div class="well"><input type="number" id="ft" placeholder="FT" onfocus="handleFocus(this, 'imp')" oninput="sync('imp')"></div>
+            <div class="well"><input type="number" id="in" placeholder="IN" onfocus="handleFocus(this, 'imp')" oninput="sync('imp')"></div>
+            <div class="well" style="background:var(--tape-yellow); padding:0; border:3px solid #000;">
+                <div class="scroller" id="dial" onmousedown="master='imp'" onscroll="sync('imp')"></div>
+            </div>
         </div>
         <span class="stamped">Metric Input</span>
-        <div class="metric-well"><input type="number" id="cm" class="metric-input" onfocus="handleFocus(this, 'met')" oninput="sync('met')"></div>
+        <div id="mWell" class="metric-well"><input type="number" id="cm" class="metric-input" placeholder="0.0" onfocus="handleFocus(this, 'met')" oninput="sync('met')"></div>
+        
         <div class="reset-split">
-            <button class="reset-btn" onclick="swipeAllFields()">Swipe Notebook</button>
+            <button class="reset-btn" onclick="openSafety()">Swipe Notebook</button>
             <button class="reset-btn" onclick="clearInputs()">Clear Entry</button>
         </div>
+
         <div class="bank-grid">
             <button class="bank-btn active" id="bA" onclick="setBank('A')">A</button>
             <button class="bank-btn" id="bB" onclick="setBank('B')">B</button>
@@ -91,12 +105,13 @@
         <div class="total-bar"><span class="total-label">Project Tally Summary (+)</span><div id="grandTotal" class="total-val">0.0 cm | 0' 0"</div></div>
     </div>
 </div>
+
 <script>
     const fracs = [{l:"0",v:0},{l:"1/16",v:0.0625},{l:"1/8",v:0.125},{l:"3/16",v:0.1875},{l:"1/4",v:0.25},{l:"5/16",v:0.3125},{l:"3/8",v:0.375},{l:"7/16",v:0.4375},{l:"1/2",v:0.5},{l:"9/16",v:0.5625},{l:"5/8",v:0.625},{l:"11/16",v:0.6875},{l:"3/4",v:0.75},{l:"13/16",v:0.8125},{l:"7/8",v:0.875},{l:"15/16",v:0.9375}];
     const dial = document.getElementById('dial');
     fracs.forEach(f => { let d = document.createElement('div'); d.className='scroller-item'; d.innerText=f.l; dial.appendChild(d); });
 
-    let master = ""; let activeBank = 'A'; let selectedSlot = 1;
+    let master = ""; let activeBank = 'A'; let selectedSlot = 1; let isRecallMode = false;
     let banks = { A:Array(50).fill(null), B:Array(50).fill(null), C:Array(50).fill(null), D:Array(50).fill(null), E:Array(50).fill(null) };
     let addedIndices = { A:new Set(), B:new Set(), C:new Set(), D:new Set(), E:new Set() };
 
@@ -104,12 +119,30 @@
     for(let i=1; i<=50; i++) {
         let row = document.createElement('div');
         row.className = 'mem-row'; row.id = 'r' + i;
-        row.innerHTML = `<div onclick="recallData(${i})" style="flex-grow:1"><span style="color:#666;font-size:0.75rem;margin-right:12px;font-weight:bold;">${i}</span><span id="s${i}" style="font-family:monospace;">---</span></div>
-                         <button class="add-btn" onclick="toggleAdd(${i})">+</button>`;
+        row.innerHTML = `<div onclick="recallData(${i})" style="flex-grow:1"><span style="color:#444;font-size:0.7rem;margin-right:10px;">${i}</span><span id="s${i}" class="val-text empty-text">---</span></div>
+                         <button class="add-btn" onclick="toggleAdd(event, ${i})">+</button>`;
         slotContainer.appendChild(row);
     }
 
-    function handleFocus(el, side) { master = side; el.value = ""; dial.scrollTo({ top: 0, behavior: 'smooth' }); }
+    function toggleColor(isRecall) {
+        isRecallMode = isRecall;
+        const els = [document.getElementById('ft'), document.getElementById('in'), document.getElementById('cm')];
+        const well = document.getElementById('mWell');
+        els.forEach(el => el.classList.toggle('recall-active', isRecall));
+        well.classList.toggle('recall-active', isRecall);
+    }
+
+    function handleFocus(el, side) { 
+        master = side; 
+        // SMART CLEAR: Only wipe if the cell ALREADY has a number OR if we are in Recall Mode
+        if (el.value !== "" || isRecallMode) {
+            document.getElementById('ft').value = ""; 
+            document.getElementById('in').value = ""; 
+            document.getElementById('cm').value = "";
+            dial.scrollTo({ top: 0, behavior: 'auto' }); 
+            toggleColor(false); 
+        }
+    }
 
     function sync(source) {
         if (master !== source) return;
@@ -139,11 +172,16 @@
             document.getElementById('ft').value = data.ft;
             document.getElementById('in').value = data.in;
             document.getElementById('cm').value = data.cm;
-            dial.scrollTo({ top: data.fIdx * 60, behavior: 'smooth' });
+            dial.scrollTo({ top: data.fIdx * 60, behavior: 'auto' });
+            toggleColor(true); 
+        } else {
+            toggleColor(false); clearInputs();
         }
+        document.getElementById('r'+n).scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }
 
-    function toggleAdd(i) {
+    function toggleAdd(e, i) {
+        e.stopPropagation();
         if (!banks[activeBank][i-1]) return;
         if (addedIndices[activeBank].has(i)) addedIndices[activeBank].delete(i);
         else addedIndices[activeBank].add(i);
@@ -159,16 +197,22 @@
         let frLabel = fracs[fIdx].l;
         banks[activeBank][selectedSlot-1] = { cm: c, ft: f, in: inVal, fIdx: fIdx, text: `${f}' ${inVal}" ${frLabel} | ${c}cm` };
         refreshUI();
+        toggleColor(false); 
         if(selectedSlot < 50) recallData(selectedSlot + 1);
     }
 
-    function deleteRow() { banks[activeBank][selectedSlot-1] = null; addedIndices[activeBank].delete(selectedSlot); refreshUI(); }
+    function deleteRow() { 
+        banks[activeBank][selectedSlot-1] = null; addedIndices[activeBank].delete(selectedSlot); 
+        refreshUI(); toggleColor(false); clearInputs();
+    }
 
     function refreshUI() {
         let runningCm = 0;
         for(let i=1; i<=50; i++) {
             let data = banks[activeBank][i-1];
-            document.getElementById('s'+i).innerText = data ? data.text : "---";
+            let span = document.getElementById('s'+i);
+            span.innerText = data ? data.text : "---";
+            span.classList.toggle('empty-text', !data);
             let row = document.getElementById('r'+i);
             row.classList.toggle('added-row', addedIndices[activeBank].has(i));
             if (addedIndices[activeBank].has(i)) runningCm += data.cm;
@@ -182,19 +226,20 @@
         document.getElementById('grandTotal').innerText = `${cm.toFixed(1)} cm | ${f}' ${i}${s>0?' '+s+'/16':''}"`;
     }
 
-    function clearInputs() { document.getElementById('ft').value = ""; document.getElementById('in').value = ""; document.getElementById('cm').value = ""; dial.scrollTo(0,0); master = ""; }
-
-    function swipeAllFields() {
-        if(confirm("Empty the entire Yard Notebook for Bank " + activeBank + "?")) {
-            banks[activeBank] = Array(50).fill(null); addedIndices[activeBank].clear(); refreshUI(); recallData(1);
-        }
+    function clearInputs() { 
+        document.getElementById('ft').value = ""; document.getElementById('in').value = ""; document.getElementById('cm').value = ""; 
+        dial.scrollTo({ top: 0, behavior: 'auto' }); master = ""; toggleColor(false); 
     }
+
+    function openSafety() { document.getElementById('targetBankLabel').innerText = activeBank; document.getElementById('safetyModal').style.display = 'flex'; }
+    function closeSafety() { document.getElementById('safetyModal').style.display = 'none'; }
+    function confirmSwipe() { banks[activeBank] = Array(50).fill(null); addedIndices[activeBank].clear(); refreshUI(); recallData(1); closeSafety(); }
 
     function setBank(b) {
         activeBank = b;
         document.querySelectorAll('.bank-btn').forEach(btn => btn.classList.remove('active'));
         document.getElementById('b'+b).classList.add('active');
-        refreshUI();
+        refreshUI(); toggleColor(false); clearInputs();
     }
     recallData(1);
 </script>
