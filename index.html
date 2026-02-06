@@ -8,22 +8,37 @@
         :root { --m-red: #D62828; --rubber: #121212; --plastic: #c02121; --gold: #FFD700; --active-green: #00ff00; --tape-yellow: #FFD200; }
         body { background-color: #080808; color: #fff; font-family: 'Segoe UI', sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; touch-action: manipulation; }
         
-        /* THE GHOST BAR - Floating at the absolute top */
+        /* THE FIXED BANKER BEACON */
         #ghostBar {
-            display: none; position: fixed; top: 0; left: 0; width: 100%; 
-            background: rgba(0, 255, 0, 0.15); backdrop-filter: blur(5px);
-            color: var(--active-green); padding: 12px 0; font-weight: 900; 
-            text-align: center; font-size: 0.8rem; letter-spacing: 3px;
-            border-bottom: 1px solid rgba(0,255,0,0.3); z-index: 2000;
-            cursor: pointer; animation: fadeIn 0.3s;
+            display: none; 
+            position: fixed; 
+            top: 0; left: 0; 
+            width: 100%; 
+            height: 100px; /* Taller area for the beam effect */
+            background: linear-gradient(to bottom, rgba(0, 255, 0, 0.5) 0%, rgba(0, 255, 0, 0.1) 60%, transparent 100%);
+            backdrop-filter: blur(3px);
+            color: #fff; 
+            font-weight: 900; 
+            text-align: center; 
+            font-size: 1.1rem; 
+            letter-spacing: 5px;
+            z-index: 9999; 
+            cursor: pointer; 
+            padding-top: 15px;
+            text-shadow: 0 0 10px rgba(0,255,0,0.8);
+            animation: beamPulse 2s infinite alternate;
         }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        
+        @keyframes beamPulse {
+            from { opacity: 0.8; }
+            to { opacity: 1; }
+        }
 
         /* MODAL */
         #safetyModal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 1000; justify-content: center; align-items: center; }
         .modal-box { background: var(--rubber); border: 2px solid var(--plastic); border-radius: 20px; padding: 30px; width: 85%; max-width: 320px; text-align: center; }
 
-        .tool-body { width: 95%; max-width: 420px; background: var(--rubber); padding: 25px 15px; border-radius: 45px 5px 45px 45px; border: 3px solid #222; box-shadow: 0 50px 100px #000; position: relative; }
+        .tool-body { width: 95%; max-width: 420px; background: var(--rubber); padding: 25px 15px; border-radius: 45px 5px 45px 45px; border: 3px solid #222; box-shadow: 0 50px 100px #000; position: relative; margin-top: 20px; }
         .branding { text-align: center; color: #444; font-size: 0.85rem; font-weight: 900; letter-spacing: 3px; margin-bottom: 12px; text-transform: uppercase; }
         
         .red-insert { background: var(--plastic); padding: 20px 15px; border-radius: 25px; border: 1px solid #8b1a1a; box-shadow: inset 0 5px 15px rgba(255,255,255,0.1); }
@@ -137,7 +152,6 @@
         slotContainer.appendChild(row);
     }
 
-    // GHOST BAR LOGIC
     function dismissKeyboard() {
         document.activeElement.blur();
         document.getElementById('ghostBar').style.display = 'none';
@@ -153,7 +167,7 @@
 
     function handleFocus(el, side) { 
         master = side; 
-        document.getElementById('ghostBar').style.display = 'block'; // Show Ghost Bar
+        document.getElementById('ghostBar').style.display = 'block';
         if (el.value !== "" || isRecallMode) {
             document.getElementById('ft').value = ""; document.getElementById('in').value = ""; document.getElementById('cm').value = "";
             dial.scrollTo({ top: 0, behavior: 'auto' }); toggleColor(false); 
